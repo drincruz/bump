@@ -54,19 +54,22 @@ def bump_version(version_string, version, suffix):
     try:
         versions = list(map(int, version_string.split('.')))
         if curr_suffix:
+            while len(versions) < 3:
+                versions += [0]
             versions.append(int(suffix_version))
-        print(versions)
     except ValueError:
         pass
     else:
-        while len(versions) < 3:
+        while len(versions) < 4:
             versions += [0]
+            print(versions)
         if version == 'major':
-            versions = versions[0] + 1, 0, 0
+            versions = versions[0] + 1, 0, 0, 0
         elif version == 'minor':
-            versions = versions[0], versions[1] + 1, 0
+            versions = versions[0], versions[1] + 1, 0, 0
         elif version == 'patch' or suffix is None:
-            versions = versions[0], versions[1], versions[2] + 1
+            print(versions)
+            versions = versions[0], versions[1], versions[2] + 1, 0
         elif suffix and version == 'suffix_bump':
             versions = (versions[0], versions[1],
                     versions[2], versions[3] + 1)
@@ -93,8 +96,6 @@ def get_matches(files, version, suffix=None):
             version_string = match.group(1)
             bumped_version_string = bump_version(version_string, version,
                                                  suffix)
-            print("[DEBUG] bumpbed version string: %s " % bumped_version_string)
-
             if not bumped_version_string:
                 print("Invalid version string in {}: {}"
                       .format(filename, version_string))
@@ -114,10 +115,7 @@ def get_matches(files, version, suffix=None):
 def main():
     args = get_args().__dict__
     quiet = args.pop('quiet')
-    print(quiet)
     matches = get_matches(**args)
-    print(matches)
-    exit(1)
 
     if len(matches) < 1:
         exit(1)
