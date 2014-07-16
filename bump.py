@@ -46,6 +46,7 @@ def bump_version(version_string, version, suffix):
     if curr_suffix:
         curr_suffix_parts = curr_suffix.split('.')
         if len(curr_suffix_parts) > 1:
+            curr_suffix = curr_suffix_parts[0]
             suffix_version = curr_suffix_parts[1]
         else:
             suffix_version = 1
@@ -62,14 +63,13 @@ def bump_version(version_string, version, suffix):
     else:
         while len(versions) < 4:
             versions += [0]
-            print(versions)
         if version == 'major':
             versions = versions[0] + 1, 0, 0, 0
         elif version == 'minor':
             versions = versions[0], versions[1] + 1, 0, 0
         elif version == 'patch' or suffix is None:
-            print(versions)
-            versions = versions[0], versions[1], versions[2] + 1, 0
+            versions = (versions[0], versions[1],
+                    versions[2] + 1, versions[3] if versions[3] else 0)
         elif suffix and version == 'suffix_bump':
             versions = (versions[0], versions[1],
                     versions[2], versions[3] + 1)
