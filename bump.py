@@ -50,10 +50,10 @@ def bump_version(version_string, version, suffix):
         else:
             suffix_version = 1
     else:
-        suffix_version = 1
+        suffix_version = 0 
     try:
         versions = list(map(int, version_string.split('.')))
-        if suffix_version:
+        if curr_suffix:
             versions.append(int(suffix_version))
         print(versions)
     except ValueError:
@@ -75,7 +75,7 @@ def bump_version(version_string, version, suffix):
         return '.'.join(
                 map(str,
                     [version for i, version in enumerate(versions) if i < 3])
-                ) + suffix + '.' + str(suffix_version)
+                ) + ((suffix + '.' + str(versions[3])) if suffix else '')
 
 
 def get_matches(files, version, suffix=None):
@@ -93,6 +93,7 @@ def get_matches(files, version, suffix=None):
             version_string = match.group(1)
             bumped_version_string = bump_version(version_string, version,
                                                  suffix)
+            print("[DEBUG] bumpbed version string: %s " % bumped_version_string)
 
             if not bumped_version_string:
                 print("Invalid version string in {}: {}"
