@@ -36,6 +36,13 @@ Add suffix ::
     Is this ok? y/n y
     Updated setup.py
 
+Bump suffix version ::
+
+    $ bump setup.py -s=-rc -S
+    1.1.0-rc.1 => 1.1.0-rc.2
+    Is this ok? y/n y
+    Updated setup.py
+
 Quiet mode ::
 
     $ bump setup.py -q
