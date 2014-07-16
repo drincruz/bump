@@ -23,6 +23,8 @@ def get_args():
                         const='minor', help="Bump minor version")
     parser.add_argument('-b', dest='version', action='store_const',
                         const='patch', help="Bump patch version")
+    parser.add_argument('-S', dest='version', action='store_const',
+                        const='suffix_bump', help="Bump suffix version")
     parser.add_argument('-s', dest='suffix', type=str,
                         help="Update suffix")
     parser.add_argument('-q', dest='quiet', action='store_true',
@@ -37,25 +39,46 @@ def bump_version(version_string, version, suffix):
     Bumps a version.
     Returns bumped version string or None if version string is invalid.
     """
-    match = re.search('([0-9\.]+)([^0-9\.]*)', version_string)
+    match = re.search('([0-9\.]+)([^$]*)', version_string)
     version_string = match.group(1)
     curr_suffix = match.group(2)
+
+    if curr_suffix:
+        curr_suffix_parts = curr_suffix.split('.')
+        if len(curr_suffix_parts) > 1:
+            curr_suffix = curr_suffix_parts[0]
+            suffix_version = curr_suffix_parts[1]
+        else:
+            suffix_version = 1
+    else:
+        suffix_version = 0 
     try:
         versions = list(map(int, version_string.split('.')))
+        if curr_suffix:
+            while len(versions) < 3:
+                versions += [0]
+            versions.append(int(suffix_version))
     except ValueError:
         pass
     else:
-        while len(versions) < 3:
+        while len(versions) < 4:
             versions += [0]
         if version == 'major':
-            versions = versions[0] + 1, 0, 0
+            versions = versions[0] + 1, 0, 0, 0
         elif version == 'minor':
-            versions = versions[0], versions[1] + 1, 0
+            versions = versions[0], versions[1] + 1, 0, 0
         elif version == 'patch' or suffix is None:
-            versions = versions[0], versions[1], versions[2] + 1
+            versions = (versions[0], versions[1],
+                    versions[2] + 1, versions[3] if versions[3] else 0)
+        elif suffix and version == 'suffix_bump':
+            versions = (versions[0], versions[1],
+                    versions[2], versions[3] + 1)
         if suffix is None:
             suffix = curr_suffix
-        return '.'.join(map(str, versions)) + suffix
+        return '.'.join(
+                map(str,
+                    [version for i, version in enumerate(versions) if i < 3])
+                ) + ((suffix + '.' + str(versions[3])) if suffix else '')
 
 
 def get_matches(files, version, suffix=None):
@@ -73,7 +96,6 @@ def get_matches(files, version, suffix=None):
             version_string = match.group(1)
             bumped_version_string = bump_version(version_string, version,
                                                  suffix)
-
             if not bumped_version_string:
                 print("Invalid version string in {}: {}"
                       .format(filename, version_string))
